@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "662754776628",
+    "project_id": "frigory-a6038",
+    "storage_bucket": "frigory-a6038.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:662754776628:android:e8681119c96a1865a95c61",
+        "android_client_info": {
+          "package_name": "com.lalov.frigory"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2cKunyjo4lGa67g3znaXmmp1PRwI1q4Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
