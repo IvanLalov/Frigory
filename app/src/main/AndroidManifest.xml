@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Frigory">
         <activity
+            android:name=".BuscarAlimentoActivity"
+            android:exported="false" />
+        <activity
             android:name=".InventarioActivity"
             android:exported="false" />
         <activity

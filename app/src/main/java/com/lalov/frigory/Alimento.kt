@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class Alimento(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val nombre: String,
-    val cantidad: Int,
+    var cantidad: Int,
     val fechaCaducidad: String,
     val stockMinimo: Int = 1
 )

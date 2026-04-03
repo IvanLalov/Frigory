@@ -16,4 +16,5 @@ interface AlimentoDao {
 
     @Update
     fun actualizar(alimento: Alimento)
+
 }
