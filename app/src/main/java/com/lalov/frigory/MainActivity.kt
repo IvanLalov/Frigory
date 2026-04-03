@@ -1,5 +1,6 @@
 package com.lalov.frigory
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -34,6 +35,9 @@ class MainActivity : AppCompatActivity() {
                         if (task.isSuccessful) {
                             Toast.makeText(this, "¡Bienvenido a Frigory!", Toast.LENGTH_SHORT).show()
                             // Aquí es donde luego saltaremos a la pantalla de la nevera
+                            val intent = Intent(this, InventarioActivity::class.java)
+                            startActivity(intent)
+                            finish() // Para que no pueda volver al login dándole atrás
                         } else {
                             Toast.makeText(this, "Error: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                         }
