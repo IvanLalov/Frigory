@@ -11,13 +11,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 class InventarioActivity : AppCompatActivity() {
@@ -38,7 +36,6 @@ class InventarioActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_inventario)
 
-        // Configuración de la Toolbar para que aparezca el menú
         val toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbarInventario)
         setSupportActionBar(toolbar)
 
@@ -81,15 +78,15 @@ class InventarioActivity : AppCompatActivity() {
     // --- LÓGICA DE DATOS ---
 
     private fun cargarDatos() {
-        CoroutineScope(Dispatchers.IO).launch {
+        // lifecycleScope cancela la corrutina automáticamente si la Activity se cierra
+        lifecycleScope.launch {
             val lista = database.alimentoDao().obtenerTodos()
-            withContext(Dispatchers.Main) {
-                rvInventario.adapter = AlimentoAdapter(
-                    listaAlimentos = lista,
-                    onClick = { alimento -> mostrarDialogoEdicion(alimento) },
-                    onLongClick = { alimento -> mostrarOpcionesAlimento(alimento) }
-                )
-            }
+            // Como estamos en lifecycleScope, ya estamos en el hilo principal para la UI
+            rvInventario.adapter = AlimentoAdapter(
+                listaAlimentos = lista,
+                onClick = { alimento -> mostrarDialogoEdicion(alimento) },
+                onLongClick = { alimento -> mostrarOpcionesAlimento(alimento) }
+            )
         }
     }
 
@@ -111,25 +108,20 @@ class InventarioActivity : AppCompatActivity() {
 
         btnCancelar.setOnClickListener { dialog.dismiss() }
 
-        // Añadir a la lista de la compra manualmente
         btnCompra.setOnClickListener {
-            CoroutineScope(Dispatchers.IO).launch {
+            lifecycleScope.launch {
                 database.alimentoDao().insertarCompra(CompraItem(nombre = alimento.nombre))
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@InventarioActivity, "${alimento.nombre} añadido a la lista", Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
-                }
+                Toast.makeText(this@InventarioActivity, "${alimento.nombre} añadido a la lista", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
             }
         }
 
         btnEliminar.setOnClickListener {
-            CoroutineScope(Dispatchers.IO).launch {
+            lifecycleScope.launch {
                 database.alimentoDao().eliminar(alimento)
-                withContext(Dispatchers.Main) {
-                    cargarDatos()
-                    Toast.makeText(this@InventarioActivity, "Producto eliminado", Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
-                }
+                cargarDatos()
+                Toast.makeText(this@InventarioActivity, "Producto eliminado", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
             }
         }
 
@@ -138,13 +130,11 @@ class InventarioActivity : AppCompatActivity() {
             val cal = Calendar.getInstance()
             DatePickerDialog(this, { _, year, month, day ->
                 val nuevaFecha = "${String.format("%02d", day)}/${String.format("%02d", month + 1)}/$year"
-                CoroutineScope(Dispatchers.IO).launch {
+                lifecycleScope.launch {
                     alimento.fechaCaducidad = nuevaFecha
                     database.alimentoDao().actualizar(alimento)
-                    withContext(Dispatchers.Main) {
-                        cargarDatos()
-                        Toast.makeText(this@InventarioActivity, "Fecha actualizada", Toast.LENGTH_SHORT).show()
-                    }
+                    cargarDatos()
+                    Toast.makeText(this@InventarioActivity, "Fecha actualizada", Toast.LENGTH_SHORT).show()
                 }
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
         }
@@ -184,7 +174,6 @@ class InventarioActivity : AppCompatActivity() {
         actualizarColorCero()
 
         btnMas.setOnClickListener {
-            // LÍMITE SUPERIOR: 999
             if (alimento.cantidad < 999) {
                 alimento.cantidad++
                 actualizarBaseDeDatos(alimento)
@@ -210,11 +199,9 @@ class InventarioActivity : AppCompatActivity() {
     }
 
     private fun actualizarBaseDeDatos(alimento: Alimento) {
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch {
             database.alimentoDao().actualizar(alimento)
-            withContext(Dispatchers.Main) {
-                rvInventario.adapter?.notifyDataSetChanged()
-            }
+            rvInventario.adapter?.notifyDataSetChanged()
         }
     }
 
@@ -247,11 +234,9 @@ class InventarioActivity : AppCompatActivity() {
                 .setTitle("¡Aviso de Frigory!")
                 .setMessage("El producto ${alimento.nombre} $motivo. ¿Quieres añadirlo a la lista de la compra?")
                 .setPositiveButton("Sí, añadir") { _, _ ->
-                    CoroutineScope(Dispatchers.IO).launch {
+                    lifecycleScope.launch {
                         database.alimentoDao().insertarCompra(CompraItem(nombre = alimento.nombre))
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(this@InventarioActivity, "Añadido a la compra 🛒", Toast.LENGTH_SHORT).show()
-                        }
+                        Toast.makeText(this@InventarioActivity, "Añadido a la compra 🛒", Toast.LENGTH_SHORT).show()
                     }
                 }
                 .setNegativeButton("No", null)

@@ -11,13 +11,11 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Calendar
 
 class BuscarAlimentoActivity : AppCompatActivity() {
@@ -71,24 +69,24 @@ class BuscarAlimentoActivity : AppCompatActivity() {
     }
 
     private fun buscarEnInternet(termino: String, rv: RecyclerView) {
-        CoroutineScope(Dispatchers.IO).launch {
+        // Usamos lifecycleScope para que la petición se cancele si el usuario sale de la pantalla
+        lifecycleScope.launch {
             try {
+                // Retrofit y las suspend functions gestionan el hilo secundario solas
                 val respuesta = RetrofitClient.instance.buscarAlimento(termino)
                 val lista = respuesta.productos
 
-                withContext(Dispatchers.Main) {
-                    if (lista.isNullOrEmpty()) {
-                        Toast.makeText(this@BuscarAlimentoActivity, "No se encontraron productos", Toast.LENGTH_SHORT).show()
-                    } else {
-                        rv.adapter = ResultadosAdapter(lista) { productoSeleccionado ->
-                            mostrarConfirmacionYFecha(productoSeleccionado)
-                        }
+                if (lista.isNullOrEmpty()) {
+                    Toast.makeText(this@BuscarAlimentoActivity, "No se encontraron productos", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Ya estamos en el hilo principal, actualizamos la UI directamente
+                    rv.adapter = ResultadosAdapter(lista) { productoSeleccionado ->
+                        mostrarConfirmacionYFecha(productoSeleccionado)
                     }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@BuscarAlimentoActivity, "Error al conectar con el servidor", Toast.LENGTH_SHORT).show()
-                }
+                // Captura fallos de red o errores de servidor (500, 404, etc)
+                Toast.makeText(this@BuscarAlimentoActivity, "Error al conectar con el servidor", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -151,17 +149,17 @@ class BuscarAlimentoActivity : AppCompatActivity() {
     }
 
     private fun guardarRealEnBaseDeDatos(prod: ProductoAPI, fecha: String) {
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch {
             val nuevo = Alimento(
                 nombre = prod.nombre ?: "Desconocido",
                 cantidad = 1,
                 fechaCaducidad = fecha
             )
+            // Room detecta que es suspend y no bloquea el hilo principal
             database.alimentoDao().insertar(nuevo)
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@BuscarAlimentoActivity, "¡${prod.nombre} añadido!", Toast.LENGTH_SHORT).show()
-                finish() // Cerramos la búsqueda al terminar
-            }
+
+            Toast.makeText(this@BuscarAlimentoActivity, "¡${prod.nombre} añadido!", Toast.LENGTH_SHORT).show()
+            finish() // Cerramos la actividad después de guardar
         }
     }
 }
