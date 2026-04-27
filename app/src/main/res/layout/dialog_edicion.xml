@@ -4,60 +4,68 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center">
-
-    <TextView
-        android:id="@+id/tvNombreDialogo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Nombre Alimento"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textAlignment="center"
-        android:textColor="#1565C0"
-        android:layout_marginBottom="20dp"/>
+    android:gravity="center"
+    android:background="@android:color/white"> <TextView
+    android:id="@+id/tvNombreDialogo"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Nombre Alimento"
+    android:textSize="20sp"
+    android:textStyle="bold"
+    android:textAlignment="center"
+    android:textColor="#1565C0"
+    android:layout_marginBottom="24dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginBottom="24dp">
+        android:layout_marginBottom="32dp">
 
         <Button
             android:id="@+id/btnMenos"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:text="-"
-            android:textSize="24sp"
-            android:backgroundTint="#E57373"/>
+            android:textSize="28sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#E57373"
+            style="@style/Widget.MaterialComponents.Button"/>
 
         <TextView
             android:id="@+id/tvCantidadDialogo"
-            android:layout_width="120dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:text="1"
-            android:textSize="32sp"
+            android:textSize="36sp"
             android:textStyle="bold"
             android:gravity="center"
-            android:layout_marginHorizontal="10dp"/>
+            android:lines="1"
+            android:maxLines="1"
+            android:layout_marginHorizontal="12dp"
+            android:textColor="#333333"/>
 
         <Button
             android:id="@+id/btnMas"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:text="+"
-            android:textSize="24sp"
-            android:backgroundTint="#81C784"/>
+            android:textSize="28sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#81C784"
+            style="@style/Widget.MaterialComponents.Button"/>
     </LinearLayout>
 
     <Button
         android:id="@+id/btnCerrarDialogo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ACEPTAR Y VOLVER"
-        android:padding="12dp"
+        android:text="GUARDAR Y VOLVER"
+        android:padding="14dp"
+        android:textSize="16sp"
         android:backgroundTint="#1565C0"
-        android:textColor="#FFFFFF"/>
+        android:textColor="#FFFFFF"
+        style="@style/Widget.MaterialComponents.Button"/>
 
 </LinearLayout>

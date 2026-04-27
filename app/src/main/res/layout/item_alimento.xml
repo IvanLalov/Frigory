@@ -5,24 +5,40 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
-        <TextView
-            android:id="@+id/tvNombreAlimento"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Nombre Alimento"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#333333"/>
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvNombreAlimento"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre Alimento"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#333333"/>
+
+            <TextView
+                android:id="@+id/tvFechaAlimento"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Caduca: --/--/----"
+                android:textSize="14sp"
+                android:textColor="#757575"
+                android:layout_marginTop="4dp"/>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvCantidadAlimento"
@@ -30,7 +46,10 @@
             android:layout_height="wrap_content"
             android:text="Cant: 1"
             android:textColor="#1565C0"
-            android:textStyle="bold"/>
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginStart="8dp"/>
+
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

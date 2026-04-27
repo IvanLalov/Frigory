@@ -8,6 +8,6 @@ data class Alimento(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val nombre: String,
     var cantidad: Int,
-    val fechaCaducidad: String,
+    var fechaCaducidad: String = "Sin fecha",
     val stockMinimo: Int = 1
 )

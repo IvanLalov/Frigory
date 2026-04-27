@@ -17,4 +17,16 @@ interface AlimentoDao {
     @Update
     fun actualizar(alimento: Alimento)
 
+    // --- FUNCIONES PARA LA LISTA DE LA COMPRA ---
+    @Query("SELECT * FROM lista_compra")
+    suspend fun obtenerCompra(): List<CompraItem>
+
+    @Insert
+    suspend fun insertarCompra(item: CompraItem)
+
+    @Delete
+    suspend fun eliminarCompra(item: CompraItem)
+
+    @Update
+    suspend fun actualizarCompra(item: CompraItem)
 }
