@@ -9,8 +9,9 @@ Este proyecto ha sido desarrollado como Trabajo de Fin de Grado (TFG) para el Ci
 *   **Alertas de Caducidad Visuales:** Sistema de código de colores (Gris, Amarillo, Rojo) basado en la proximidad de la fecha de vencimiento.
 *   **Consulta Automatizada (API):** Integración con la API de Open Food Facts mediante Retrofit para autocompletar datos de productos.
 *   **Filosofía Offline-First:** Persistencia de datos local con la librería Room, permitiendo el uso total sin conexión a internet.
-*   **Lista de la Compra Inteligente:** Sincronización automática de carencias del inventario con una lista de compras.
+*   **Lista de la Compra Inteligente:** Sincronización automática y sugerencias proactivas de carencias del inventario al agotar existencias.
 *   **Autenticación Segura:** Gestión de usuarios mediante Firebase Authentication.
+*   **Interfaz Ergonómica: Diseño optimizado para el uso con una sola mano y adaptabilidad a diferentes sistemas de navegación (gestos/botones).
 
 ## 🛠️ Stack Tecnológico
 
