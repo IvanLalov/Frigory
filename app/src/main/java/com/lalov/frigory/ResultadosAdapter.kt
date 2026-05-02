@@ -13,7 +13,7 @@ class ResultadosAdapter(
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val nombre: TextView = view.findViewById(R.id.tvNombreAlimento)
-        val marca: TextView = view.findViewById(R.id.tvCantidadAlimento) // Reutilizamos el ID para la marca
+        val marca: TextView = view.findViewById(R.id.tvCantidadAlimento)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

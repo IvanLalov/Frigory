@@ -30,12 +30,11 @@ class AlimentoAdapter(
         val alimento = listaAlimentos[position]
         holder.tvNombre.text = alimento.nombre
 
-        // --- Lógica de Colores para la Fecha (Semáforo Inteligente) ---
+        // Gestión visual de caducidad
         try {
             val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
             val fechaCaducidad = sdf.parse(alimento.fechaCaducidad)
 
-            // Ajustamos la fecha de 'hoy' a las 00:00 para que la comparación sea justa
             val calHoy = Calendar.getInstance()
             calHoy.set(Calendar.HOUR_OF_DAY, 0)
             calHoy.set(Calendar.MINUTE, 0)
@@ -49,45 +48,39 @@ class AlimentoAdapter(
 
                 when {
                     diasRestantes < 0 -> {
-                        // YA HA CADUCADO
-                        holder.tvFecha.text = "¡CADUCADO! (${alimento.fechaCaducidad})"
+                        holder.tvFecha.text = "CADUCADO (${alimento.fechaCaducidad})"
                         holder.tvFecha.setTextColor(Color.RED)
                     }
                     diasRestantes <= 3 -> {
-                        // QUEDAN 3 DÍAS O MENOS (Aviso naranja)
                         holder.tvFecha.text = "Caduca pronto: ${alimento.fechaCaducidad}"
                         holder.tvFecha.setTextColor(Color.parseColor("#FF9800"))
                     }
                     else -> {
-                        // TODO CORRECTO
                         holder.tvFecha.text = "Caduca: ${alimento.fechaCaducidad}"
                         holder.tvFecha.setTextColor(Color.parseColor("#757575"))
                     }
                 }
             }
         } catch (e: Exception) {
-            // Si no hay fecha o tiene un formato raro
             holder.tvFecha.text = "Sin fecha de caducidad"
             holder.tvFecha.setTextColor(Color.GRAY)
         }
 
-        // --- Lógica de Cantidad y Estado Visual ---
+        // Gestión visual de stock
         if (alimento.cantidad == 0) {
-            holder.tvCantidad.text = "¡AGOTADO!"
+            holder.tvCantidad.text = "AGOTADO"
             holder.tvCantidad.setTextColor(Color.RED)
-            holder.itemView.setBackgroundColor(Color.parseColor("#FFF0F0")) // Fondo rosado suave
+            holder.itemView.setBackgroundColor(Color.parseColor("#FFF0F0"))
         } else {
             holder.tvCantidad.text = "Cant: ${alimento.cantidad}"
             holder.tvCantidad.setTextColor(Color.BLACK)
             holder.itemView.setBackgroundColor(Color.WHITE)
         }
 
-        // --- Eventos de Clic ---
         holder.itemView.setOnClickListener { onClick(alimento) }
-
         holder.itemView.setOnLongClickListener {
             onLongClick(alimento)
-            true // Devuelve true para indicar que hemos gestionado el clic largo
+            true
         }
     }
 

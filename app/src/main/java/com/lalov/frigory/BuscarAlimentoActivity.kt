@@ -25,7 +25,6 @@ class BuscarAlimentoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // SEGURIDAD: Verificación de sesión de usuario
         val user = FirebaseAuth.getInstance().currentUser
         if (user == null) {
             startActivity(Intent(this, MainActivity::class.java))
@@ -34,132 +33,100 @@ class BuscarAlimentoActivity : AppCompatActivity() {
         }
 
         setContentView(R.layout.activity_buscar_alimento)
-
         database = AppDatabase.getDatabase(this)
 
         val etBuscador = findViewById<EditText>(R.id.etBuscador)
-        val btnBuscar = findViewById<Button>(R.id.btnBuscarAPI)
         val rv = findViewById<RecyclerView>(R.id.rvResultados)
-
         rv.layoutManager = LinearLayoutManager(this)
 
-        btnBuscar.setOnClickListener {
+        findViewById<Button>(R.id.btnBuscarAPI).setOnClickListener {
             val texto = etBuscador.text.toString().trim()
-
-            // CONTROL DE CONECTIVIDAD: Antes de llamar a la API
-            if (!tieneInternet()) {
-                Toast.makeText(this, "No hay conexión a internet 🌐", Toast.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
-
-            if (texto.isNotEmpty()) {
-                buscarEnInternet(texto, rv)
+            if (verificarConexion()) {
+                if (texto.isNotEmpty()) ejecutarBusqueda(texto, rv)
             } else {
-                Toast.makeText(this, "Escribe algo para buscar", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Sin conexión a internet", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // --- FUNCIÓN DE ESCUDO: Detecta si el móvil tiene datos o Wi-Fi activo ---
-    private fun tieneInternet(): Boolean {
-        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = connectivityManager.activeNetwork ?: return false
-        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    private fun verificarConexion(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    private fun buscarEnInternet(termino: String, rv: RecyclerView) {
-        // Usamos lifecycleScope para que la petición se cancele si el usuario sale de la pantalla
+    private fun ejecutarBusqueda(termino: String, rv: RecyclerView) {
         lifecycleScope.launch {
             try {
-                // Retrofit y las suspend functions gestionan el hilo secundario solas
                 val respuesta = RetrofitClient.instance.buscarAlimento(termino)
                 val lista = respuesta.productos
 
                 if (lista.isNullOrEmpty()) {
-                    Toast.makeText(this@BuscarAlimentoActivity, "No se encontraron productos", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@BuscarAlimentoActivity, "Sin resultados", Toast.LENGTH_SHORT).show()
                 } else {
-                    // Ya estamos en el hilo principal, actualizamos la UI directamente
                     rv.adapter = ResultadosAdapter(lista) { productoSeleccionado ->
-                        mostrarConfirmacionYFecha(productoSeleccionado)
+                        mostrarDialogoConfirmacion(productoSeleccionado)
                     }
                 }
             } catch (e: Exception) {
-                // Captura fallos de red o errores de servidor (500, 404, etc)
-                Toast.makeText(this@BuscarAlimentoActivity, "Error al conectar con el servidor", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@BuscarAlimentoActivity, "Error de red", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun mostrarConfirmacionYFecha(prod: ProductoAPI) {
+    private fun mostrarDialogoConfirmacion(prod: ProductoAPI) {
         val nombreProd = prod.nombre ?: "Producto"
-        val diasSugeridos = obtenerDiasSugeridos(nombreProd)
+        val fechaSugerida = calcularFechaSugerida(nombreProd)
 
-        val calSugerida = Calendar.getInstance()
-        calSugerida.add(Calendar.DAY_OF_YEAR, diasSugeridos)
-        val fechaSugeridaStr = "${String.format("%02d", calSugerida.get(Calendar.DAY_OF_MONTH))}/${String.format("%02d", calSugerida.get(Calendar.MONTH) + 1)}/${calSugerida.get(Calendar.YEAR)}"
-
-        val dialogView = layoutInflater.inflate(R.layout.dialog_confirmacion_alimento, null)
-        val builder = android.app.AlertDialog.Builder(this)
-        builder.setView(dialogView)
-
-        val dialog = builder.create()
+        val view = layoutInflater.inflate(R.layout.dialog_confirmacion_alimento, null)
+        val dialog = android.app.AlertDialog.Builder(this).setView(view).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        val tvTitulo = dialogView.findViewById<TextView>(R.id.tvTituloDialogo)
-        val tvMensaje = dialogView.findViewById<TextView>(R.id.tvMensajeDialogo)
-        val btnNo = dialogView.findViewById<Button>(R.id.btnNo)
-        val btnSi = dialogView.findViewById<Button>(R.id.btnSi)
-        val btnManual = dialogView.findViewById<Button>(R.id.btnManual)
+        view.findViewById<TextView>(R.id.tvTituloDialogo).text = "¿Añadir $nombreProd?"
+        view.findViewById<TextView>(R.id.tvMensajeDialogo).text = "Sugerencia de caducidad: $fechaSugerida"
 
-        tvTitulo.text = "¿Añadir $nombreProd?"
-        tvMensaje.text = "Frigory sugiere que caducará el $fechaSugeridaStr. ¿Deseas usar esta fecha?"
-
-        btnNo.setOnClickListener { dialog.dismiss() }
-
-        btnSi.setOnClickListener {
-            guardarRealEnBaseDeDatos(prod, fechaSugeridaStr)
+        view.findViewById<Button>(R.id.btnSi).setOnClickListener {
+            guardarAlimento(prod, fechaSugerida)
             dialog.dismiss()
         }
 
-        btnManual.setOnClickListener {
+        view.findViewById<Button>(R.id.btnManual).setOnClickListener {
             dialog.dismiss()
             val cal = Calendar.getInstance()
             DatePickerDialog(this, { _, year, month, day ->
                 val fechaManual = "${String.format("%02d", day)}/${String.format("%02d", month + 1)}/$year"
-                guardarRealEnBaseDeDatos(prod, fechaManual)
+                guardarAlimento(prod, fechaManual)
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
         }
 
+        view.findViewById<Button>(R.id.btnNo).setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 
-    private fun obtenerDiasSugeridos(nombre: String): Int {
+    private fun calcularFechaSugerida(nombre: String): String {
         val n = nombre.lowercase()
-        return when {
+        val dias = when {
             n.contains("leche") -> 7
             n.contains("huevo") -> 21
             n.contains("yogur") -> 15
-            n.contains("carne") || n.contains("pollo") || n.contains("filete") -> 3
+            n.contains("carne") || n.contains("pollo") -> 3
             n.contains("pescado") -> 2
-            n.contains("fruta") || n.contains("manzana") || n.contains("platano") -> 10
-            n.contains("pan") -> 5
             else -> 30
         }
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_YEAR, dias)
+        return "${String.format("%02d", cal.get(Calendar.DAY_OF_MONTH))}/${String.format("%02d", cal.get(Calendar.MONTH) + 1)}/${cal.get(Calendar.YEAR)}"
     }
 
-    private fun guardarRealEnBaseDeDatos(prod: ProductoAPI, fecha: String) {
+    private fun guardarAlimento(prod: ProductoAPI, fecha: String) {
         lifecycleScope.launch {
-            val nuevo = Alimento(
+            database.alimentoDao().insertar(Alimento(
                 nombre = prod.nombre ?: "Desconocido",
                 cantidad = 1,
                 fechaCaducidad = fecha
-            )
-            // Room detecta que es suspend y no bloquea el hilo principal
-            database.alimentoDao().insertar(nuevo)
-
-            Toast.makeText(this@BuscarAlimentoActivity, "¡${prod.nombre} añadido!", Toast.LENGTH_SHORT).show()
-            finish() // Cerramos la actividad después de guardar
+            ))
+            finish()
         }
     }
 }

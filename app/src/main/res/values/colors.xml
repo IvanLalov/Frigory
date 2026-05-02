@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Colores base -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Paleta de Frigory -->
+    <color name="primary_blue">#1565C0</color>
+    <color name="dark_blue">#0D47A1</color>
+    <color name="accent_blue">#1976D2</color>
+    <color name="background_light">#F0F4F8</color>
+    <color name="text_hint">#546E7A</color>
+
+    <!-- Semáforo de caducidad y stock -->
+    <color name="status_expired">#F44336</color>
+    <color name="status_warning">#FF9800</color>
+    <color name="status_ok">#757575</color>
+    <color name="background_expired">#FFF0F0</color>
 </resources>

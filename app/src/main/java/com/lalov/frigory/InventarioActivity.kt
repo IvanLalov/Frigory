@@ -4,8 +4,6 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -26,7 +24,6 @@ class InventarioActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // SEGURIDAD: Verificamos sesión antes de cargar nada
         val user = FirebaseAuth.getInstance().currentUser
         if (user == null) {
             startActivity(Intent(this, MainActivity::class.java))
@@ -40,14 +37,17 @@ class InventarioActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         database = AppDatabase.getDatabase(this)
-
         rvInventario = findViewById(R.id.rvInventario)
         rvInventario.layoutManager = LinearLayoutManager(this)
 
-        val btnAdd = findViewById<Button>(R.id.btnAnadirProducto)
-        btnAdd.setOnClickListener {
-            val intent = Intent(this, BuscarAlimentoActivity::class.java)
-            startActivity(intent)
+        // Botón principal para añadir productos
+        findViewById<Button>(R.id.btnAnadirProducto).setOnClickListener {
+            startActivity(Intent(this, BuscarAlimentoActivity::class.java))
+        }
+
+        // Botón "Píldora" para la lista de la compra
+        findViewById<Button>(R.id.btnVerListaCompra).setOnClickListener {
+            startActivity(Intent(this, ListaCompraActivity::class.java))
         }
 
         cargarDatos()
@@ -58,30 +58,9 @@ class InventarioActivity : AppCompatActivity() {
         cargarDatos()
     }
 
-    // --- MENÚ SUPERIOR (CARRITO) ---
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_inventario, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.action_carrito) {
-            Toast.makeText(this, "Abriendo lista de la compra...", Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, ListaCompraActivity::class.java)
-            startActivity(intent)
-            return true
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    // --- LÓGICA DE DATOS ---
-
     private fun cargarDatos() {
-        // lifecycleScope cancela la corrutina automáticamente si la Activity se cierra
         lifecycleScope.launch {
             val lista = database.alimentoDao().obtenerTodos()
-            // Como estamos en lifecycleScope, ya estamos en el hilo principal para la UI
             rvInventario.adapter = AlimentoAdapter(
                 listaAlimentos = lista,
                 onClick = { alimento -> mostrarDialogoEdicion(alimento) },
@@ -90,42 +69,30 @@ class InventarioActivity : AppCompatActivity() {
         }
     }
 
-    // --- DIÁLOGO DE GESTIÓN (Al mantener pulsado) ---
     private fun mostrarOpcionesAlimento(alimento: Alimento) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_opciones_alimento, null)
-        val builder = AlertDialog.Builder(this)
-        builder.setView(dialogView)
-        val dialog = builder.create()
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        val btnEliminar = dialogView.findViewById<Button>(R.id.btnEliminar)
-        val btnEditar = dialogView.findViewById<Button>(R.id.btnEditarFecha)
-        val btnCompra = dialogView.findViewById<Button>(R.id.btnAnadirALaCompra)
-        val btnCancelar = dialogView.findViewById<Button>(R.id.btnNoOpciones)
-        val tvTitulo = dialogView.findViewById<TextView>(R.id.tvTituloOpciones)
+        dialogView.findViewById<TextView>(R.id.tvTituloOpciones).text = alimento.nombre
 
-        tvTitulo.text = alimento.nombre
-
-        btnCancelar.setOnClickListener { dialog.dismiss() }
-
-        btnCompra.setOnClickListener {
+        dialogView.findViewById<Button>(R.id.btnAnadirALaCompra).setOnClickListener {
             lifecycleScope.launch {
                 database.alimentoDao().insertarCompra(CompraItem(nombre = alimento.nombre))
-                Toast.makeText(this@InventarioActivity, "${alimento.nombre} añadido a la lista", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@InventarioActivity, "Añadido a la lista", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
         }
 
-        btnEliminar.setOnClickListener {
+        dialogView.findViewById<Button>(R.id.btnEliminar).setOnClickListener {
             lifecycleScope.launch {
                 database.alimentoDao().eliminar(alimento)
                 cargarDatos()
-                Toast.makeText(this@InventarioActivity, "Producto eliminado", Toast.LENGTH_SHORT).show()
                 dialog.dismiss()
             }
         }
 
-        btnEditar.setOnClickListener {
+        dialogView.findViewById<Button>(R.id.btnEditarFecha).setOnClickListener {
             dialog.dismiss()
             val cal = Calendar.getInstance()
             DatePickerDialog(this, { _, year, month, day ->
@@ -134,113 +101,67 @@ class InventarioActivity : AppCompatActivity() {
                     alimento.fechaCaducidad = nuevaFecha
                     database.alimentoDao().actualizar(alimento)
                     cargarDatos()
-                    Toast.makeText(this@InventarioActivity, "Fecha actualizada", Toast.LENGTH_SHORT).show()
                 }
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
         }
 
+        dialogView.findViewById<Button>(R.id.btnNoOpciones).setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 
-    // --- DIÁLOGO DE EDICIÓN DE CANTIDAD (+/-) ---
     private fun mostrarDialogoEdicion(alimento: Alimento) {
         val view = layoutInflater.inflate(R.layout.dialog_edicion, null)
-        val builder = AlertDialog.Builder(this)
-        builder.setView(view)
-
-        val dialog = builder.create()
-        dialog.show()
+        val dialog = AlertDialog.Builder(this).setView(view).create()
 
         val tvNombre = view.findViewById<TextView>(R.id.tvNombreDialogo)
         val tvCant = view.findViewById<TextView>(R.id.tvCantidadDialogo)
-        val btnMas = view.findViewById<Button>(R.id.btnMas)
-        val btnMenos = view.findViewById<Button>(R.id.btnMenos)
-        val btnCerrar = view.findViewById<Button>(R.id.btnCerrarDialogo)
 
         tvNombre.text = alimento.nombre
         tvCant.text = alimento.cantidad.toString()
 
-        fun actualizarColorCero() {
+        fun actualizarInterfaz() {
             tvCant.text = alimento.cantidad.toString()
-            if (alimento.cantidad == 0) {
-                tvCant.setTextColor(Color.RED)
-                tvNombre.text = "${alimento.nombre} (AGOTADO)"
-            } else {
-                tvCant.setTextColor(Color.BLACK)
-                tvNombre.text = alimento.nombre
-            }
+            tvCant.setTextColor(if (alimento.cantidad == 0) Color.RED else Color.BLACK)
         }
 
-        actualizarColorCero()
-
-        btnMas.setOnClickListener {
+        view.findViewById<Button>(R.id.btnMas).setOnClickListener {
             if (alimento.cantidad < 999) {
                 alimento.cantidad++
-                actualizarBaseDeDatos(alimento)
-                actualizarColorCero()
-            } else {
-                Toast.makeText(this, "Máximo alcanzado (999)", Toast.LENGTH_SHORT).show()
+                actualizarPersistencia(alimento)
+                actualizarInterfaz()
             }
         }
 
-        btnMenos.setOnClickListener {
+        view.findViewById<Button>(R.id.btnMenos).setOnClickListener {
             if (alimento.cantidad > 0) {
                 alimento.cantidad--
-                actualizarBaseDeDatos(alimento)
-                actualizarColorCero()
-
-                if (alimento.cantidad == 0) {
-                    comprobarAlertasYAnadir(alimento)
-                }
+                actualizarPersistencia(alimento)
+                actualizarInterfaz()
+                if (alimento.cantidad == 0) comprobarAlertas(alimento)
             }
         }
 
-        btnCerrar.setOnClickListener { dialog.dismiss() }
+        view.findViewById<Button>(R.id.btnCerrarDialogo).setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
-    private fun actualizarBaseDeDatos(alimento: Alimento) {
+    private fun actualizarPersistencia(alimento: Alimento) {
         lifecycleScope.launch {
             database.alimentoDao().actualizar(alimento)
             rvInventario.adapter?.notifyDataSetChanged()
         }
     }
 
-    private fun comprobarAlertasYAnadir(alimento: Alimento) {
-        val hoy = Calendar.getInstance()
-        val formato = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
-
-        var motivo = ""
-
-        if (alimento.cantidad == 0) {
-            motivo = "se ha agotado"
-        } else {
-            try {
-                val fechaCad = formato.parse(alimento.fechaCaducidad)
-                if (fechaCad != null) {
-                    val calCad = Calendar.getInstance()
-                    calCad.time = fechaCad
-                    val diff = calCad.timeInMillis - hoy.timeInMillis
-                    val diasRestantes = diff / (24 * 60 * 60 * 1000)
-
-                    if (diasRestantes <= 2) {
-                        motivo = "está a punto de caducar"
-                    }
+    private fun comprobarAlertas(alimento: Alimento) {
+        AlertDialog.Builder(this)
+            .setTitle("Aviso de stock")
+            .setMessage("${alimento.nombre} se ha agotado. ¿Añadir a la lista de la compra?")
+            .setPositiveButton("Sí") { _, _ ->
+                lifecycleScope.launch {
+                    database.alimentoDao().insertarCompra(CompraItem(nombre = alimento.nombre))
                 }
-            } catch (e: Exception) { }
-        }
-
-        if (motivo.isNotEmpty()) {
-            AlertDialog.Builder(this)
-                .setTitle("¡Aviso de Frigory!")
-                .setMessage("El producto ${alimento.nombre} $motivo. ¿Quieres añadirlo a la lista de la compra?")
-                .setPositiveButton("Sí, añadir") { _, _ ->
-                    lifecycleScope.launch {
-                        database.alimentoDao().insertarCompra(CompraItem(nombre = alimento.nombre))
-                        Toast.makeText(this@InventarioActivity, "Añadido a la compra 🛒", Toast.LENGTH_SHORT).show()
-                    }
-                }
-                .setNegativeButton("No", null)
-                .show()
-        }
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 }

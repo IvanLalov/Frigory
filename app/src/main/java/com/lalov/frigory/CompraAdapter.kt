@@ -1,6 +1,7 @@
 package com.lalov.frigory
 
 import android.graphics.Paint
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,7 +31,6 @@ class CompraAdapter(
         val item = items[position]
 
         holder.cb.setOnCheckedChangeListener(null)
-
         holder.tv.text = item.nombre
         holder.cb.isChecked = item.marcado
 
@@ -38,21 +38,20 @@ class CompraAdapter(
 
         holder.cb.setOnCheckedChangeListener { _, isChecked ->
             item.marcado = isChecked
-            actualizarEstiloTexto(holder.tv, isChecked) // Tachamos al momento
-            onCheckChanged(item) // Guardamos en la base de datos
+            actualizarEstiloTexto(holder.tv, isChecked)
+            onCheckChanged(item)
         }
 
         holder.btnBorrar.setOnClickListener { onDelete(item) }
     }
 
-    // Función de apoyo para no repetir código del tachado
     private fun actualizarEstiloTexto(tv: TextView, marcado: Boolean) {
         if (marcado) {
-            tv.paintFlags = tv.paintFlags or android.graphics.Paint.STRIKE_THRU_TEXT_FLAG
-            tv.setTextColor(android.graphics.Color.GRAY)
+            tv.paintFlags = tv.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+            tv.setTextColor(Color.GRAY)
         } else {
-            tv.paintFlags = tv.paintFlags and android.graphics.Paint.STRIKE_THRU_TEXT_FLAG.inv()
-            tv.setTextColor(android.graphics.Color.BLACK)
+            tv.paintFlags = tv.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            tv.setTextColor(Color.BLACK)
         }
     }
 

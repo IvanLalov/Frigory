@@ -11,17 +11,15 @@
         android:id="@+id/tvTituloDialogo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="¿Añadir Producto?"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="#1565C0"
+        android:textColor="@color/primary_blue"
         android:layout_marginBottom="8dp"/>
 
     <TextView
         android:id="@+id/tvMensajeDialogo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Mensaje de confirmación..."
         android:textSize="16sp"
         android:textColor="#555555"
         android:layout_marginBottom="24dp"/>
@@ -50,8 +48,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="SÍ"
-            android:backgroundTint="#1565C0"
-            android:textColor="#FFFFFF"
+            android:backgroundTint="@color/primary_blue"
+            android:textColor="@color/white"
             app:cornerRadius="24dp" />
     </LinearLayout>
 
@@ -61,8 +59,8 @@
         android:layout_height="wrap_content"
         android:text="ELEGIR FECHA MANUAL"
         android:backgroundTint="#F5F5F5"
-        android:textColor="#1565C0"
-        app:strokeColor="#1565C0"
+        android:textColor="@color/primary_blue"
+        app:strokeColor="@color/primary_blue"
         app:strokeWidth="1dp"
         app:cornerRadius="24dp" />
 

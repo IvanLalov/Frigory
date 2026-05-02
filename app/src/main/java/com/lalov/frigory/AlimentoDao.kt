@@ -5,20 +5,20 @@ import androidx.room.*
 @Dao
 interface AlimentoDao {
 
-    // --- INVENTARIO (NEVERA) ---
+    // Gestión del inventario (Nevera)
     @Query("SELECT * FROM tabla_nevera")
     suspend fun obtenerTodos(): List<Alimento>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertar(alimento: Alimento) // Añadido suspend
+    suspend fun insertar(alimento: Alimento)
 
     @Delete
-    suspend fun eliminar(alimento: Alimento) // Añadido suspend
+    suspend fun eliminar(alimento: Alimento)
 
     @Update
-    suspend fun actualizar(alimento: Alimento) // Añadido suspend
+    suspend fun actualizar(alimento: Alimento)
 
-    // --- LISTA DE LA COMPRA ---
+    // Gestión de la lista de la compra
     @Query("SELECT * FROM lista_compra")
     suspend fun obtenerCompra(): List<CompraItem>
 
@@ -33,11 +33,10 @@ interface AlimentoDao {
 
     @Transaction
     suspend fun moverAInventario(item: CompraItem) {
-        // Convertimos el item de compra en un Alimento para la nevera
         val nuevoAlimento = Alimento(
             nombre = item.nombre,
-            cantidad = 1, // Por defecto 1, luego el usuario puede editarlo
-            fechaCaducidad = "Sin fecha" // O una fecha por defecto
+            cantidad = 1,
+            fechaCaducidad = "Sin fecha"
         )
         insertar(nuevoAlimento)
         eliminarCompra(item)

@@ -11,10 +11,9 @@
         android:id="@+id/tvTituloOpciones"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Opciones de Alimento"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="#1565C0"
+        android:textColor="@color/primary_blue"
         android:layout_marginBottom="20dp"
         android:gravity="center"/>
 
@@ -24,7 +23,7 @@
         android:layout_height="wrap_content"
         android:text="AÑADIR A LA COMPRA"
         android:backgroundTint="#4CAF50"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/white"
         android:layout_marginBottom="12dp"
         app:cornerRadius="24dp" />
 
@@ -33,8 +32,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="EDITAR FECHA CADUCIDAD"
-        android:backgroundTint="#1565C0"
-        android:textColor="#FFFFFF"
+        android:backgroundTint="@color/primary_blue"
+        android:textColor="@color/white"
         android:layout_marginBottom="12dp"
         app:cornerRadius="24dp" />
 
@@ -43,8 +42,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="ELIMINAR PRODUCTO"
-        android:backgroundTint="#D32F2F"
-        android:textColor="#FFFFFF"
+        android:backgroundTint="@color/status_expired"
+        android:textColor="@color/white"
         android:layout_marginBottom="12dp"
         app:cornerRadius="24dp" />
 
